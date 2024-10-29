@@ -17,9 +17,10 @@ class _SchedulePageState extends State<SchedulePage> {
     '2024-10-28': [{'start': '6 AM', 'end': '2 PM', 'room': 'Room 1'}],
     '2024-10-29': [{'start': '2 PM', 'end': '10 PM', 'room': 'Room 4'}],
     '2024-10-30': [{'start': '6 PM', 'end': '10 PM', 'room': 'Room 4'}],
-    '2024-10-31': [{'start': '10 PM', 'end': '11 PM', 'room': 'Room 4'}],
-    '2024-11-01': [{'start': '10 PM', 'end': '11 PM', 'room': 'Room 4'}],
+    '2024-10-31': [{'start': '6 PM', 'end': '11 PM', 'room': 'Room 4'}],
+    '2024-11-01': [{'start': '6 PM', 'end': '11 PM', 'room': 'Room 4'}],
     '2024-11-02': [{'start': '2 AM', 'end': '10 AM', 'room': 'Room 4'}],
+    '2024-11-03': [{'start': '2 AM', 'end': '10 AM', 'room': 'Room 2'}],
   };
 
   @override
@@ -56,42 +57,48 @@ class _SchedulePageState extends State<SchedulePage> {
 
   // Method to build shift cells
   Widget _buildShiftCell(DateTime date, String timeSlot) {
-    String dateKey = DateFormat('yyyy-MM-dd').format(date);
-    List<Map<String, String>>? shifts = _shifts[dateKey];
+  String dateKey = DateFormat('yyyy-MM-dd').format(date);
+  List<Map<String, String>>? shifts = _shifts[dateKey];
 
-    // Extract time from the time slot
-    String timeSlotPeriod = timeSlot.split(' ')[1]; // AM or PM
-    int timeSlotHour = int.parse(timeSlot.split(' ')[0]);
-    if (timeSlotHour == 12) timeSlotHour = 0; // Adjust for 12 AM case
-    if (timeSlotPeriod == 'PM') timeSlotHour += 12; // Convert PM to 24-hour format
+  // Extract time from the time slot
+  String timeSlotPeriod = timeSlot.split(' ')[1]; // AM or PM
+  int timeSlotHour = int.parse(timeSlot.split(' ')[0]);
+  if (timeSlotHour == 12) timeSlotHour = 0; // Adjust for 12 AM case
+  if (timeSlotPeriod == 'PM') timeSlotHour += 12; // Convert PM to 24-hour format
 
-    // Check for shifts that overlap with the timeSlot
-    bool isShiftTime = shifts != null && shifts.any((shift) {
-      int startHour = _parseHour(shift['start']!);
-      int endHour = _parseHour(shift['end']!);
-      return timeSlotHour >= startHour && timeSlotHour < endHour; // Check if within the shift time
-    });
+  // Check for shifts that overlap with the timeSlot
+  bool isShiftTime = shifts != null && shifts.any((shift) {
+    int startHour = _parseHour(shift['start']!);
+    int endHour = _parseHour(shift['end']!);
+    return timeSlotHour >= startHour && timeSlotHour < endHour; // Check if within the shift time
+  });
 
-    return Container(
-      height: 100,
-      decoration: BoxDecoration(
-        border: Border.all(color: Colors.grey),
-        color: isShiftTime ? Colors.green : Colors.white,
-      ),
-      child: Center(
-        child: isShiftTime
-            ? Text(shifts!.firstWhere((shift) => _parseHour(shift['start']!) <= timeSlotHour && timeSlotHour < _parseHour(shift['end']!))['room']!, textAlign: TextAlign.center)
-            : Text('', textAlign: TextAlign.center), // Return an empty string for other times
-      ),
-    );
-  }
+  // Safely retrieve the room
+  String room = shifts != null && shifts.isNotEmpty
+      ? shifts.firstWhere(
+          (shift) => _parseHour(shift['start']!) <= timeSlotHour && timeSlotHour < _parseHour(shift['end']!),
+          orElse: () => {'room': ''},
+        )['room']!
+      : ''; // Fallback if there are no shifts available
+
+  return Container(
+    height: 100,
+    decoration: BoxDecoration(
+      border: Border.all(color: Colors.grey),
+      color: isShiftTime ? Colors.green : Colors.white,
+    ),
+    child: Center(
+      child: Text(room, textAlign: TextAlign.center),
+    ),
+  );
+}
 
   // Helper function to parse hour string to 24-hour format
   int _parseHour(String hourString) {
     final parts = hourString.split(' ');
     int hour = int.parse(parts[0]);
-    if (hour == 12) hour = 0; // 12 AM should be 0
-    if (parts[1] == 'PM') hour += 12; // Convert PM to 24-hour format
+    if (hour == 12) hour = 0; // Convert 12 AM to 0
+    if (parts.length > 1 && parts[1] == 'PM') hour += 12; // Convert PM to 24-hour format
     return hour;
   }
 
