@@ -11,17 +11,17 @@ class RegisterPage extends StatefulWidget {
 }
 
 class _RegisterPageState extends State<RegisterPage> {
-  TextEditingController usernameController = TextEditingController();
+  TextEditingController emailController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
   TextEditingController cpasswordController = TextEditingController();
   String errorMessage = '';
 
   Future<void> _signup() async {
-    final String user_username = usernameController.text.trim();
-    final String user_password = passwordController.text.trim();
-    final String user_cpassword = cpasswordController.text.trim();
+    final String nurse_email = emailController.text.trim();
+    final String nurse_password = passwordController.text.trim();
+    final String nurse_cpassword = cpasswordController.text.trim();
 
-    if (user_password != user_cpassword) {
+    if (nurse_password != nurse_cpassword) {
       setState(() {
         errorMessage = 'Passwords do not match!';
       });
@@ -29,32 +29,19 @@ class _RegisterPageState extends State<RegisterPage> {
     }
 
     // Your API endpoint for registration
-    const String apiUrl = 'https://zenenix.helioho.st/serve/user/create.php';
-    const String apiUrlCart = 'https://zenenix.helioho.st/serve/carting/cartcreate.php';
+    const String apiUrl = 'https://russgarde03.helioho.st/serve/nurse/create.php';
 
     try {
       final response = await http.post(
         Uri.parse(apiUrl),
-        body: jsonEncode({'user_username': user_username, 'user_password': user_password}),
+        body: jsonEncode({'nurse_email': nurse_email, 'nurse_password': nurse_password}),
         headers: {'Content-Type': 'application/json'},
       );
 
       if (response.statusCode == 201) {
         // Successful registration
-          try {
-            final response = await http.post(
-            Uri.parse(apiUrlCart),
-            body: jsonEncode({'user_username': user_username}),
-            headers: {'Content-Type': 'application/json'},
-          );
-          } catch (e) {
-            // Handle network errors
-            setState(() {
-              errorMessage = 'Error huhu: $e';
-            });
-          }
         final responseData = jsonDecode(response.body);
-        final bool success = responseData['message'] == "User was created.";
+        final bool success = responseData['message'] == "Account was created.";
 
         // Store registration status in shared preferences
         SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -68,9 +55,9 @@ class _RegisterPageState extends State<RegisterPage> {
           });
         }
       } else if (response.statusCode == 503) {
-        // Username already exists
+        // Email already exists
         setState(() {
-          errorMessage = 'Username already exists!';
+          errorMessage = 'Email already exists!';
         });
       } else {
         // Handle other errors
@@ -121,7 +108,7 @@ class _RegisterPageState extends State<RegisterPage> {
                   children: [
                     TextField(
                       cursorColor: Colors.black,
-                      controller: usernameController,
+                      controller: emailController,
                       decoration: const InputDecoration(
                         enabledBorder: OutlineInputBorder(
                           borderSide: BorderSide(color: Color.fromARGB(255, 212, 208, 208)),
@@ -131,7 +118,7 @@ class _RegisterPageState extends State<RegisterPage> {
                         ),
                         fillColor: Colors.white,
                         filled: true,
-                        hintText: 'Username',
+                        hintText: 'Email',
                       ),
                     ),
 

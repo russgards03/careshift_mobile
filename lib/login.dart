@@ -14,20 +14,20 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  TextEditingController usernameController = TextEditingController();
+  TextEditingController emailController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
   String errorMessage = '';
 
   Future<void> _login() async {
-    final String username = usernameController.text.trim();
+    final String email = emailController.text.trim();
     final String password = passwordController.text.trim();
 
-    const String apiUrl = 'https://zenenix.helioho.st/serve/user/validate.php';
+    const String apiUrl = 'https://russgarde03.helioho.st/serve/nurse/validate.php';
 
     try {
       final response = await http.post(
         Uri.parse(apiUrl),
-        body: jsonEncode({'user_username': username, 'user_password': password}),
+        body: jsonEncode({'nurse_email': email, 'nurse_password': password}),
         headers: {'Content-Type': 'application/json'},
       );
 
@@ -42,7 +42,7 @@ class _LoginPageState extends State<LoginPage> {
           _navigateToHome();
         } else {
           setState(() {
-            errorMessage = 'Cannot verify user.';
+            errorMessage = 'Cannot verify account.';
           });
         }
       } else {
@@ -102,7 +102,7 @@ class _LoginPageState extends State<LoginPage> {
                     children: [
                       TextField(
                         cursorColor: AppColors.mainDarkColor,
-                        controller: usernameController,
+                        controller: emailController,
                         decoration: const InputDecoration(
                           enabledBorder: OutlineInputBorder(
                             borderSide: BorderSide(color: Color.fromARGB(255, 212, 208, 208)),
