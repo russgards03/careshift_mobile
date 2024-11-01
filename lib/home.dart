@@ -29,24 +29,25 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-    // Initialize _pages to a loading state
-    _pages = _initializePages(); // Initialize pages immediately
     fetchUserData();
   }
 
   Future<void> fetchUserData() async {
-  SharedPreferences prefs = await SharedPreferences.getInstance();
-  String? nurseId = prefs.getString('nurse_id'); // Get the nurseId
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    nurseId = prefs.getString('nurse_id') ?? ''; // Get the nurseId
 
-  // Debugging log
-  print('Fetched nurseId: $nurseId'); // Log the fetched nurseId
+    // Debugging log
+    print('Fetched nurseId: $nurseId'); // Log the fetched nurseId
 
-  if (nurseId != null && nurseId.isNotEmpty) {
-    // Proceed with fetching other user data or navigating to ProfilePage
-  } else {
-    print("No nurseId found in SharedPreferences."); // Log if nurseId is null or empty
+    if (nurseId.isNotEmpty) {
+      // Initialize pages after nurseId is fetched
+      setState(() {
+        _pages = _initializePages();
+      });
+    } else {
+      print("No nurseId found in SharedPreferences."); // Log if nurseId is null or empty
+    }
   }
-}
 
   Future<List<Widget>> _initializePages() async {
     return <Widget>[
