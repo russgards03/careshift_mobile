@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class LeavePage extends StatefulWidget {
   const LeavePage({Key? key}) : super(key: key);
@@ -9,58 +11,72 @@ class LeavePage extends StatefulWidget {
 }
 
 class _LeavePageState extends State<LeavePage> {
-  final List<Map<String, String>> leaveRecords = [
-    {
-      'dateFiled': 'October 15, 2024',
-      'timeFiled': '10:30 AM',
-      'status': 'Pending',
-      'leaveType': 'Sick Leave',
-      'description': 'Flu symptoms',
-      'leaveStart': 'October 20, 2024',
-      'leaveEnd': 'October 25, 2024',
-    },
-    {
-      'dateFiled': 'September 20, 2024',
-      'timeFiled': '03:45 PM',
-      'status': 'Accepted',
-      'leaveType': 'Vacation Leave',
-      'description': 'Family trip',
-      'leaveStart': 'September 22, 2024',
-      'leaveEnd': 'September 28, 2024',
-    },
-    {
-      'dateFiled': 'August 16, 2024',
-      'timeFiled': '09:15 AM',
-      'status': 'Rejected',
-      'leaveType': 'Sick Leave',
-      'description': 'Medical appointment',
-      'leaveStart': 'August 18, 2024',
-      'leaveEnd': 'August 22, 2024',
-    },
-  ];
+  final List<Map<String, String>> leaveRecords = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchLeaveRecords(); // Fetch existing leave records from the server if needed
+  }
+
+  Future<void> _fetchLeaveRecords() async {
+    // Implement a method to fetch leave records if needed
+  }
 
   void _openAddLeaveDialog(BuildContext context) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AddLeaveDialog(
-          onSave: (String leaveType, String description, DateTime startDate, DateTime endDate) {
-            final newLeaveRecord = {
-              'dateFiled': DateFormat.yMMMMd().format(DateTime.now()),
-              'timeFiled': DateFormat.jm().format(DateTime.now()),
-              'status': 'Pending',
-              'leaveType': leaveType,
-              'description': description,
-              'leaveStart': DateFormat.yMMMMd().format(startDate),
-              'leaveEnd': DateFormat.yMMMMd().format(endDate),
-            };
-            setState(() {
-              leaveRecords.add(newLeaveRecord);
-            });
+          onSave: (String leaveType, String description, DateTime startDate, DateTime endDate) async {
+            final newLeaveRecord = await _createLeave(
+              leaveType,
+              description,
+              startDate,
+              endDate,
+            );
+            if (newLeaveRecord != null) {
+              setState(() {
+                leaveRecords.add(newLeaveRecord);
+              });
+            }
           },
         );
       },
     );
+  }
+
+  Future<Map<String, String>?> _createLeave(
+      String leaveType, String description, DateTime startDate, DateTime endDate) async {
+    final response = await http.post(
+      Uri.parse('https://russgarde03.helioho.st/serve/leave/create.php'),
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode({
+        'leave_type': leaveType,
+        'description': description,
+        'leave_start': DateFormat('yyyy-MM-dd').format(startDate),
+        'leave_end': DateFormat('yyyy-MM-dd').format(endDate),
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      return {
+        'dateFiled': DateFormat.yMMMMd().format(DateTime.now()),
+        'timeFiled': DateFormat.jm().format(DateTime.now()),
+        'status': data['status'],
+        'leaveType': leaveType,
+        'description': description,
+        'leaveStart': DateFormat.yMMMMd().format(startDate),
+        'leaveEnd': DateFormat.yMMMMd().format(endDate),
+      };
+    } else {
+      // Handle error
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to create leave: ${response.reasonPhrase}')),
+      );
+      return null;
+    }
   }
 
   void _showLeaveDetails(BuildContext context, Map<String, String> leave) {
