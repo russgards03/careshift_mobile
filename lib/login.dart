@@ -33,7 +33,7 @@ class _LoginPageState extends State<LoginPage> {
     print('Response status: ${response.statusCode}');
     print('Response body: ${response.body}'); // Log the response body
 
-    if (response.statusCode == 201) {
+    if (response.statusCode == 200) {
       final responseData = jsonDecode(response.body);
       print('Response data: $responseData');
       final bool validation = responseData['validation'];
